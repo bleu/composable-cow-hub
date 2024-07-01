@@ -1,15 +1,14 @@
 "use client";
 
-import { Button, Card, CardContent, CardTitle } from "@bleu/ui";
+import { Card, CardContent, CardTitle } from "@bleu/ui";
 import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { useSwapContext } from "#/contexts/swapContext";
+import { useSwapCardContext } from "#/contexts/swapCardContext";
 import { ChainId } from "#/lib/publicClients";
 import { generateSwapSchema } from "#/lib/schema";
-import { DraftOrder, SwapData } from "#/lib/types";
+import { SwapData } from "#/lib/types";
 
 import { AdvancedSettingsAlert } from "./AdvancedSettingsAlert";
 import { AdvancedSettingsDialog } from "./AdvancedSettingsDialog";
@@ -17,6 +16,7 @@ import { InvertTokensSeparator } from "./InvertTokensSeparator";
 import { OrderTypeSwitch } from "./OrderTypeSwitch";
 import { PriceInputCard } from "./PriceInputCard";
 import { ReviewOrdersDialog } from "./ReviewOrdersDialog";
+import { SwapCardSubmitButton } from "./SwapCardSubmitButton";
 import { TokenInputCard } from "./TokenInputCard";
 import { Form } from "./ui/form";
 
@@ -25,9 +25,13 @@ export function SwapCard() {
     safe: { chainId },
   } = useSafeAppsSDK();
   const formSchema = generateSwapSchema(chainId as ChainId);
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [draftOrder, setDraftOrder] = useState<DraftOrder[]>([]);
-  const { createDraftOrder, draftOrders } = useSwapContext();
+  const {
+    createDraftOrder,
+    currentDraftOrder,
+    setCurrentDraftOrder,
+    setReviewDialogOpen,
+    reviewDialogOpen,
+  } = useSwapCardContext();
   const form = useForm<SwapData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,16 +39,12 @@ export function SwapCard() {
     },
   });
 
-  const {
-    formState: { isSubmitting },
-  } = form;
-
   return (
     <Form
       {...form}
-      onSubmit={async (data) => {
-        const newOrder = await createDraftOrder(data);
-        setDraftOrder([newOrder]);
+      onSubmit={(data) => {
+        const newOrder = createDraftOrder(data);
+        setCurrentDraftOrder(newOrder);
         setReviewDialogOpen(true);
       }}
       className="w-full"
@@ -52,7 +52,7 @@ export function SwapCard() {
       <ReviewOrdersDialog
         setOpen={setReviewDialogOpen}
         open={reviewDialogOpen}
-        draftOrders={draftOrder}
+        draftOrders={currentDraftOrder ? [currentDraftOrder] : []}
         showAddOrders
       />
       <Card className="bg-foreground text-background w-full p-5 rounded-md overflow-auto">
@@ -69,17 +69,7 @@ export function SwapCard() {
           <InvertTokensSeparator />
           <TokenInputCard side="Buy" />
           <AdvancedSettingsAlert />
-          <Button
-            className="rounded-md"
-            type="submit"
-            loading={isSubmitting}
-            loadingText="Validating..."
-            disabled={draftOrders.length > 4}
-          >
-            {draftOrders.length > 4
-              ? "You can only have 5 draft orders at a time"
-              : "Review stop-loss order"}
-          </Button>
+          <SwapCardSubmitButton />
         </CardContent>
       </Card>
     </Form>

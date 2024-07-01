@@ -5,7 +5,7 @@ import React from "react";
 
 import { NetworksContextProvider } from "#/contexts/networks";
 import { OrderProvider } from "#/contexts/ordersContext";
-import { TokenSelectContextProvider } from "#/contexts/tokenSelectContext";
+import { TokensContextProvider } from "#/contexts/tokensContext";
 
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -14,7 +14,7 @@ export function RootLayout({ children }: React.PropsWithChildren) {
   return (
     <SafeProvider loader={<SafeLoader />}>
       <NetworksContextProvider>
-        <TokenSelectContextProvider>
+        <TokensContextProvider>
           <OrderProvider>
             <div className="flex flex-col h-svh justify-between">
               <Header linkUrl={"/builder"} imageSrc={"/assets/stoploss.svg"} />
@@ -26,7 +26,7 @@ export function RootLayout({ children }: React.PropsWithChildren) {
             </div>
             <Toaster />
           </OrderProvider>
-        </TokenSelectContextProvider>
+        </TokensContextProvider>
       </NetworksContextProvider>
     </SafeProvider>
   );

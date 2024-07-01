@@ -10,19 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "@bleu/ui";
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { useSwapContext } from "#/contexts/swapContext";
+import { useOrder } from "#/contexts/ordersContext";
 import { getOrderDescription } from "#/lib/orderDescription";
-import { ChainId } from "#/lib/publicClients";
-import { fetchPairUsdPrice } from "#/lib/tokenUtils";
-import { DraftOrder, IToken } from "#/lib/types";
+import { DraftOrder } from "#/lib/types";
 
 import { ReviewOrdersDialog } from "./ReviewOrdersDialog";
 
 export function DraftOrdersTab() {
-  const { draftOrders, removeDraftOrders } = useSwapContext();
+  const { draftOrders, removeDraftOrders } = useOrder();
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -101,33 +98,15 @@ export function DraftOrderRow({
   order: DraftOrder;
   onSelect: (selected: boolean) => void;
 }) {
-  const {
-    safe: { chainId },
-  } = useSafeAppsSDK();
-  const [marketPrice, setMarketPrice] = useState<number>();
-
   const orderDescription = getOrderDescription({
-    tokenBuy: order.tokenBuy as IToken,
-    tokenSell: order.tokenSell as IToken,
+    tokenBuy: order.tokenBuy,
+    tokenSell: order.tokenSell,
     amountSell: order.amountSell,
     isSellOrder: order.isSellOrder,
     amountBuy: order.amountBuy,
   });
 
   const priceUnity = `${order.tokenBuy.symbol}/${order.tokenSell.symbol}`;
-
-  async function updateMarketPrice() {
-    const marketPrice = await fetchPairUsdPrice({
-      baseToken: order.tokenSell as IToken,
-      quoteToken: order.tokenBuy as IToken,
-      chainId: chainId as ChainId,
-    });
-    setMarketPrice(marketPrice);
-  }
-
-  useEffect(() => {
-    updateMarketPrice();
-  }, []);
 
   return (
     <TableRow className="h-7">
@@ -146,7 +125,9 @@ export function DraftOrderRow({
         {formatNumber(order.limitPrice, 4)} {priceUnity}
       </TableCell>
       <TableCell>
-        {marketPrice && formatNumber(marketPrice, 4)} {priceUnity}
+        {order.marketPrice
+          ? ` ${formatNumber(order.marketPrice, 4)} ${priceUnity}`
+          : `Market price not found`}
       </TableCell>
     </TableRow>
   );

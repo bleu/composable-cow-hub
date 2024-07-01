@@ -81,8 +81,11 @@ export const TokenLogo = ({
       alt={alt || ""}
       src={imagesSrc[index]}
       onError={() => {
-        setIndex(index + 1);
+        if (index < imagesSrc.length - 1) {
+          setIndex(index + 1);
+        }
       }}
+      unoptimized // Disabling to avoid 404 error log on the console
     />
   );
 };

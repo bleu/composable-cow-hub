@@ -3,14 +3,12 @@
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "@bleu/ui";
 
 import { useOrder } from "#/contexts/ordersContext";
-import { useSwapContext } from "#/contexts/swapContext";
 
 import { DraftOrdersTab } from "./DraftOrdersTab";
 import { HistoryOrdersTab } from "./HistoryOrdersTab";
 
 export function OrderTabs() {
-  const { draftOrders } = useSwapContext();
-  const { openOrders, historyOrders } = useOrder();
+  const { openOrders, historyOrders, draftOrders } = useOrder();
 
   return (
     <TabsRoot className="w-full flex flex-col gap-2" defaultValue="draft">

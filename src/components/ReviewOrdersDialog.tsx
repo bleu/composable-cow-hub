@@ -14,14 +14,11 @@ import {
   TabsTrigger,
 } from "@bleu/ui";
 import { ArrowDownIcon } from "@radix-ui/react-icons";
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
 import cn from "clsx";
 import * as React from "react";
-import { Address } from "viem";
 
-import { useSwapContext } from "#/contexts/swapContext";
-import { ChainId } from "#/lib/publicClients";
-import { fetchTokenUsdPrice } from "#/lib/tokenUtils";
+import { useOrder } from "#/contexts/ordersContext";
+import { useTokens } from "#/contexts/tokensContext";
 import { DraftOrder, IToken } from "#/lib/types";
 
 import { AddressWithLink } from "./AddressWithLink";
@@ -39,7 +36,7 @@ export function ReviewOrdersDialog({
   setOpen: (open: boolean) => void;
   showAddOrders?: boolean;
 }) {
-  const { addDraftOrders } = useSwapContext();
+  const { addDraftOrders } = useOrder();
   const multipleOrders = draftOrders.length > 1;
 
   return (
@@ -78,7 +75,7 @@ export function ReviewOrdersDialog({
                         title={
                           order.isSellOrder ? "Sell exactly" : "Sell at most"
                         }
-                        token={order.tokenSell as IToken}
+                        token={order.tokenSell}
                         balance={order.amountSell}
                       />
                       <ArrowDownIcon className="size-8" />
@@ -88,7 +85,7 @@ export function ReviewOrdersDialog({
                             ? "Receive at least"
                             : "Receive exactly"
                         }
-                        token={order.tokenBuy as IToken}
+                        token={order.tokenBuy}
                         balance={order.amountBuy}
                       />
                       <div className="w-full flex flex-col gap-1 mt-2">
@@ -183,16 +180,10 @@ function TokenInformation({
   balance: number;
 }) {
   const [tokenPrice, setTokenPrice] = React.useState<number>();
-  const {
-    safe: { chainId },
-  } = useSafeAppsSDK();
+  const { getOrFetchTokenPrice } = useTokens();
 
   React.useEffect(() => {
-    fetchTokenUsdPrice({
-      tokenAddress: token.address as Address,
-      tokenDecimals: token.decimals,
-      chainId: chainId as ChainId,
-    }).then(setTokenPrice);
+    getOrFetchTokenPrice(token).then(setTokenPrice);
   }, [token]);
 
   return (

@@ -34,7 +34,9 @@ export async function getCoingeckoUsdPrice({
 
   const url = `${BASE_URL}/${platform}?${new URLSearchParams(params)}`;
 
-  return fetch(url)
+  return fetch(url, {
+    mode: "no-cors",
+  })
     .then((res) => {
       return res.json();
     })

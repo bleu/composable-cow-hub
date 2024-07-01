@@ -2,19 +2,14 @@ import { Address, isAddress } from "viem";
 import { z } from "zod";
 import { normalize } from "viem/ens";
 
-import { IToken } from "./types";
 import { ChainId, publicClientsFromIds } from "./publicClients";
 import { fetchCowQuote } from "./cowApi/fetchCowQuote";
 import { oracleMinimalAbi } from "./abis/oracleMinimalAbi";
 import { capitalize } from "@bleu/ui";
-import { CHAINS_ORACLE_ROUTER_FACTORY } from "./oracleRouter";
 
-const basicAddressSchema = z
-  .string()
-  .min(1)
-  .refine((value) => isAddress(value), {
-    message: "Provided address is invalid",
-  });
+const basicAddressSchema = z.custom<Address>((val) => {
+  return typeof val === "string" ? isAddress(val) : false;
+});
 
 const basicTokenSchema = z.object({
   address: basicAddressSchema,
@@ -66,6 +61,7 @@ export const generateSwapSchema = (chainId: ChainId) =>
       amountBuy: z.coerce.number().positive(),
       strikePrice: z.coerce.number().positive(),
       limitPrice: z.coerce.number().positive(),
+      marketPrice: z.optional(z.number().positive()),
       isSellOrder: z.coerce.boolean(),
     })
     .refine(
@@ -75,6 +71,15 @@ export const generateSwapSchema = (chainId: ChainId) =>
       {
         path: ["tokenBuy"],
         message: "Tokens sell and buy must be different",
+      }
+    )
+    .refine(
+      (data) => {
+        return !data.marketPrice || data.marketPrice > data.strikePrice;
+      },
+      {
+        path: ["strikePrice"],
+        message: "Strike price must be less than current market price",
       }
     )
     .superRefine((data, ctx) => {

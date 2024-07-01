@@ -18,7 +18,7 @@ import cn from "clsx";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
-import { useSwapContext } from "#/contexts/swapContext";
+import { useSwapCardContext } from "#/contexts/swapCardContext";
 import { ChainId } from "#/lib/publicClients";
 import { generateAdvancedSettingsSchema } from "#/lib/schema";
 import { AdvancedSwapSettings } from "#/lib/types";
@@ -38,7 +38,7 @@ export function AdvancedSettingsDialog() {
   const {
     safe: { safeAddress, chainId },
   } = useSafeAppsSDK();
-  const { setAdvancedSettings, advancedSettings } = useSwapContext();
+  const { setAdvancedSettings, advancedSettings } = useSwapCardContext();
 
   const form = useForm<AdvancedSwapSettings>({
     resolver: zodResolver(generateAdvancedSettingsSchema(chainId as ChainId)),

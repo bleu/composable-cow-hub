@@ -1,12 +1,9 @@
 import { Card, CardContent, CardTitle, formatNumber, Input } from "@bleu/ui";
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { calculateAmounts } from "#/lib/calculateAmounts";
-import { ChainId } from "#/lib/publicClients";
-import { fetchPairUsdPrice } from "#/lib/tokenUtils";
-import { IToken, SwapData } from "#/lib/types";
+import { SwapData } from "#/lib/types";
 
 export const PriceInputCard = memo(PriceInputCardComponent);
 
@@ -17,32 +14,13 @@ function PriceInputCardComponent({
   fieldName: "limitPrice" | "strikePrice";
   showMarketPrice?: boolean;
 }) {
-  const {
-    safe: { chainId },
-  } = useSafeAppsSDK();
   const { register, control, getValues, setValue } = useFormContext<SwapData>();
   const title = fieldName === "limitPrice" ? "Limit price" : "Trigger price";
-  const [marketPrice, setMarketPrice] = useState<number>();
 
-  const [tokenBuy, tokenSell, price] = useWatch({
+  const [tokenBuy, tokenSell, price, marketPrice] = useWatch({
     control,
-    name: ["tokenBuy", "tokenSell", fieldName],
+    name: ["tokenBuy", "tokenSell", fieldName, "marketPrice"],
   });
-
-  const hasTokenBuyAndSell = tokenBuy && tokenSell;
-
-  async function updateMarketPrice() {
-    if (hasTokenBuyAndSell) {
-      const marketPrice = await fetchPairUsdPrice({
-        baseToken: tokenSell as IToken,
-        quoteToken: tokenBuy as IToken,
-        chainId: chainId as ChainId,
-      });
-      setMarketPrice(marketPrice);
-    } else {
-      setMarketPrice(undefined);
-    }
-  }
 
   async function updateDisabledAmount() {
     const isSellOrder = getValues("isSellOrder");
@@ -58,10 +36,6 @@ function PriceInputCardComponent({
       isSellOrder ? buyAmount : sellAmount
     );
   }
-
-  useEffect(() => {
-    updateMarketPrice();
-  }, [tokenBuy, tokenSell]);
 
   useEffect(() => {
     if (fieldName === "limitPrice") {

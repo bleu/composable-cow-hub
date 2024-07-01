@@ -2,12 +2,12 @@
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
 
-import { useSwapContext } from "#/contexts/swapContext";
+import { useSwapCardContext } from "#/contexts/swapCardContext";
 
 import { AlertCard } from "./AlertCard";
 
 export function AdvancedSettingsAlert() {
-  const { advancedSettings } = useSwapContext();
+  const { advancedSettings } = useSwapCardContext();
   const {
     safe: { safeAddress },
   } = useSafeAppsSDK();

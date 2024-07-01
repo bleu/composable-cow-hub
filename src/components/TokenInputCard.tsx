@@ -10,10 +10,12 @@ import { memo, useEffect, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Address } from "viem";
 
+import { useSwapCardContext } from "#/contexts/swapCardContext";
+import { useTokens } from "#/contexts/tokensContext";
 import { calculateAmounts } from "#/lib/calculateAmounts";
 import { ChainId } from "#/lib/publicClients";
-import { fetchFormattedBalancerOf, fetchTokenUsdPrice } from "#/lib/tokenUtils";
-import { IToken, SwapData } from "#/lib/types";
+import { fetchFormattedBalancerOf } from "#/lib/tokenUtils";
+import { SwapData } from "#/lib/types";
 
 import { Input } from "./Input";
 import { TokenSelect } from "./TokenSelect";
@@ -31,6 +33,8 @@ function TokenInputCardComponent({ side }: { side: "Sell" | "Buy" }) {
     formState: { errors },
   } = useFormContext<SwapData>();
   const tokenFieldName = `token${side}` as const;
+  const otherTokenFieldName =
+    `token${side === "Buy" ? "Sell" : "Buy"}` as const;
   const amountFieldName = `amount${side}` as const;
 
   const [isAmountDisabled, setIsAmountDisabled] = useState(false);
@@ -41,6 +45,9 @@ function TokenInputCardComponent({ side }: { side: "Sell" | "Buy" }) {
     control,
     name: [tokenFieldName, "isSellOrder", amountFieldName],
   });
+
+  const { updateOracle } = useSwapCardContext();
+  const { getOrFetchTokenPrice, getTokenPairPrice } = useTokens();
 
   async function updateOtherSideAmount() {
     const limitPrice = getValues("limitPrice");
@@ -58,17 +65,13 @@ function TokenInputCardComponent({ side }: { side: "Sell" | "Buy" }) {
   }
 
   async function updateUsdPrice() {
-    const usdPrice = await fetchTokenUsdPrice({
-      tokenAddress: token.address as Address,
-      tokenDecimals: token.decimals,
-      chainId: chainId as ChainId,
-    });
+    const usdPrice = await getOrFetchTokenPrice(token);
     setUsdPrice(usdPrice);
   }
 
   async function updateTokenBalance() {
     const balance = await fetchFormattedBalancerOf({
-      token: token as IToken,
+      token: token,
       address: safeAddress as Address,
       chainId: chainId as ChainId,
     });
@@ -105,10 +108,22 @@ function TokenInputCardComponent({ side }: { side: "Sell" | "Buy" }) {
       <CardContent className="flex justify-between gap-5 px-0 py-2 items-start">
         <div className="flex flex-col gap-y-1 w-full">
           <TokenSelect
-            selectedToken={token as IToken}
+            selectedToken={token}
             onSelectToken={(newToken) => {
+              const otherToken = getValues(otherTokenFieldName);
+              const tokenSell = side == "Sell" ? newToken : otherToken;
+              const tokenBuy = side == "Sell" ? otherToken : newToken;
+              if (otherToken) {
+                getTokenPairPrice(tokenSell, tokenBuy)
+                  .then((mkPrice) => {
+                    setValue("marketPrice", mkPrice);
+                  })
+                  .catch(() => {
+                    setValue("marketPrice", undefined);
+                  });
+                updateOracle({ tokenSell, tokenBuy });
+              }
               setValue(tokenFieldName, newToken);
-              // updateOracles(newToken, formData.tokenBuy as IToken);
             }}
             errorMessage={errors[tokenFieldName]?.message}
           />

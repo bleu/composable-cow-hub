@@ -2,7 +2,7 @@
 
 import { ArrElement, GetDeepProp } from "@bleu/ui";
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk";
-import { createContext, PropsWithChildren, useContext } from "react";
+import { createContext, PropsWithChildren, useContext, useState } from "react";
 import useSWR from "swr";
 import { Address } from "viem";
 
@@ -12,7 +12,7 @@ import { getCowOrders } from "#/lib/cowApi/fetchCowOrder";
 import { composableCowApi } from "#/lib/gql/client";
 import { UserStopLossOrdersQuery } from "#/lib/gql/composable-cow/__generated__/1";
 import { ChainId, publicClientsFromIds } from "#/lib/publicClients";
-import { IToken } from "#/lib/types";
+import { DraftOrder, IToken } from "#/lib/types";
 
 type StopLossOrderTypeRaw = ArrElement<
   GetDeepProp<UserStopLossOrdersQuery, "items">
@@ -78,6 +78,10 @@ export interface CowOrder {
 }
 
 type OrderContextType = {
+  draftOrders: DraftOrder[];
+  setDraftOrders: (orders: DraftOrder[]) => void;
+  addDraftOrders: (orders: DraftOrder[]) => void;
+  removeDraftOrders: (id: string[]) => void;
   orders: StopLossOrderType[];
   openOrders: StopLossOrderType[];
   historyOrders: StopLossOrderType[];
@@ -110,6 +114,16 @@ export function OrderProvider({ children }: PropsWithChildren) {
       fallbackData: [],
     }
   );
+
+  const [draftOrders, setDraftOrders] = useState<DraftOrder[]>([]);
+
+  function addDraftOrders(orders: DraftOrder[]): void {
+    setDraftOrders([...draftOrders, ...orders]);
+  }
+
+  function removeDraftOrders(ids: string[]): void {
+    setDraftOrders(draftOrders.filter((order) => !ids.includes(order.id)));
+  }
 
   async function getProcessedStopLossOrders({
     chainId,
@@ -237,6 +251,10 @@ export function OrderProvider({ children }: PropsWithChildren) {
       value={{
         historyOrders,
         openOrders,
+        draftOrders,
+        setDraftOrders,
+        addDraftOrders,
+        removeDraftOrders,
         isLoading,
         error,
         mutate,
