@@ -2,7 +2,6 @@
 
 import {
   formatNumber,
-  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -16,6 +15,7 @@ import { StopLossOrderType, useOrder } from "#/contexts/ordersContext";
 import { getOrderDescription } from "#/lib/orderDescription";
 import { IToken } from "#/lib/types";
 
+import { Spinner } from "./Spinner";
 import { StatusBadge } from "./StatusBadge";
 
 export function HistoryOrdersTab() {

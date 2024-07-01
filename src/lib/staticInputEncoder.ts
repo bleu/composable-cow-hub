@@ -1,13 +1,8 @@
-"use client";
+import { encodeAbiParameters, parseUnits } from "viem";
 
-import { Address, encodeAbiParameters, parseUnits } from "viem";
-
-import { calculateAmounts } from "./calculateAmounts";
-import { IStopLossRecipeData, TIME_OPTIONS_SECONDS } from "./types";
-import { HookFactory } from "./hooksFactory";
 import { MetadataApi } from "@cowprotocol/app-data";
 import { uploadAppData } from "./cowApi/uploadAppData";
-import { ChainId } from "./publicClients";
+import { StopLossOrderArgs } from "./transactionFactory";
 
 export const stopLossDataStructure = [
   {
@@ -65,22 +60,16 @@ export const stopLossDataStructure = [
 ];
 
 export async function stopLossArgsEncoder(
-  data: IStopLossRecipeData,
-  salt: Address
+  data: StopLossOrderArgs,
+  salt: `0x${string}`
 ): Promise<`0x${string}`> {
-  const preHooks = HookFactory.createCoWHooks(data.preHooks);
-  const postHooks = HookFactory.createCoWHooks(data.postHooks);
   const metadataApi = new MetadataApi();
 
   const appDataDoc = await metadataApi.generateAppDataDoc({
     metadata: {
-      hooks: {
-        pre: preHooks,
-        post: postHooks,
-      },
       widget: {
         appCode: "Stop Loss",
-        ponderId: `${salt}-${data.safeInfo.safeAddress}-${data.safeInfo.chainId}`,
+        ponderId: `${salt}-${data.safeAddress}-${data.chainId}`,
       },
     },
   });
@@ -89,19 +78,21 @@ export async function stopLossArgsEncoder(
   await uploadAppData({
     fullAppData: appDataContent,
     appDataHex,
-    chainId: data.safeInfo.chainId as ChainId,
+    chainId: data.chainId,
   });
 
   const strikePriceWithDecimals = parseUnits(String(data.strikePrice), 18);
-  const [sellAmount, buyAmount] = calculateAmounts(data);
   const sellAmountWithDecimals = parseUnits(
-    String(sellAmount),
+    String(data.amountSell),
     data.tokenSell.decimals
   );
   const buyAmountWithDecimals = parseUnits(
-    String(buyAmount),
+    String(data.amountBuy),
     data.tokenBuy.decimals
   );
+
+  const validityBucketSeconds = 24 * 60 * 60;
+
   return encodeAbiParameters(stopLossDataStructure, [
     data.tokenSell.address,
     data.tokenBuy.address,
@@ -110,11 +101,11 @@ export async function stopLossArgsEncoder(
     appDataHex,
     data.receiver,
     data.isSellOrder,
-    data.isPartiallyFillable,
-    TIME_OPTIONS_SECONDS[data.validityBucketTime],
+    data.partiallyFillable,
+    validityBucketSeconds.toFixed(),
     data.tokenSellOracle,
     data.tokenBuyOracle,
     strikePriceWithDecimals,
-    TIME_OPTIONS_SECONDS[data.maxTimeSinceLastOracleUpdate],
+    (data.maxHoursSinceOracleUpdates * 60).toFixed(),
   ]);
 }

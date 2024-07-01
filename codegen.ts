@@ -3,7 +3,6 @@ import { gnosis, mainnet, sepolia } from "viem/chains";
 
 export enum Subgraph {
   ComposableCow = "composable-cow",
-  BalancerGauges = "balancer-gauges",
 }
 
 export type SupportedChains =
@@ -12,19 +11,6 @@ export type SupportedChains =
   | typeof sepolia.id;
 
 export const SUBGRAPHS = {
-  [Subgraph.BalancerGauges]: {
-    name: Subgraph.BalancerGauges,
-    endpoints() {
-      return {
-        [mainnet.id]: `https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-gauges`,
-        [gnosis.id]: `https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-gauges-gnosis-chain`,
-        [sepolia.id]: `https://api.studio.thegraph.com/proxy/24660/balancer-gauges-sepolia/version/latest/`,
-      };
-    },
-    endpointFor(network: SupportedChains) {
-      return this.endpoints()[network];
-    },
-  },
   [Subgraph.ComposableCow]: {
     name: Subgraph.ComposableCow,
     endpoints() {

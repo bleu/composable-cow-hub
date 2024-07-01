@@ -7,7 +7,6 @@ import {
   formatDateTime,
   formatNumber,
   Separator,
-  Spinner,
 } from "@bleu/ui";
 import { ArrowLeftIcon, CopyIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
@@ -16,6 +15,7 @@ import { Address, formatUnits } from "viem";
 
 import { LinkComponent } from "#/components/Link";
 import { OrderInformation } from "#/components/OrderInformation";
+import { Spinner } from "#/components/Spinner";
 import { StatusBadge } from "#/components/StatusBadge";
 import { TokenLogo } from "#/components/TokenLogo";
 import { InfoTooltip } from "#/components/Tooltip";

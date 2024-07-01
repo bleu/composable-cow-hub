@@ -152,8 +152,8 @@ export function AdvancedSettingsDialog() {
                 const defaultSettings = {
                   receiver: safeAddress,
                   maxHoursSinceOracleUpdates: 1,
-                  tokenBuyOracle: "",
-                  tokenSellOracle: "",
+                  tokenBuyOracle: "" as const,
+                  tokenSellOracle: "" as const,
                   partiallyFillable: false,
                 };
                 reset(defaultSettings);

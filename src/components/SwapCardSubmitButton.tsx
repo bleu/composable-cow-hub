@@ -149,6 +149,12 @@ function getButtonState({
     };
   }
 
+  if (!marketPrice) {
+    return {
+      disabled: true,
+      text: "Error quoting tokens, make sure that CoW supports them.",
+    };
+  }
   return {
     disabled: false,
     text: "Review stop-loss order",

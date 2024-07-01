@@ -1,9 +1,10 @@
 "use client";
 
-import { Spinner } from "@bleu/ui";
 import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
 import React from "react";
+
+import { Spinner } from "./Spinner";
 
 export function LinkComponent({
   href,

@@ -84,7 +84,14 @@ export function DraftOrdersTab() {
           >
             Delete
           </Button>
-          <Button disabled={!selectedIds.length}>Review orders</Button>
+          <Button
+            disabled={!selectedIds.length}
+            onClick={() => {
+              setReviewDialogOpen(true);
+            }}
+          >
+            Review orders
+          </Button>
         </div>
       </div>
     </>
